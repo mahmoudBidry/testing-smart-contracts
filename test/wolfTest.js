@@ -20,7 +20,7 @@ describe("Punk", function(){
       address =  await wolfContract.owner();
       expect(address).to.equal(owner.address);
     })
-  })
+  }) 
 
   // good
   describe("setisPublicMintEnabled", function(){
