@@ -195,7 +195,7 @@ describe("Punk", function(){
   })
 
   // good
-  describe.only("withdraw", function(){
+  describe("withdraw", function(){
     it("(withdraw) should be reverted because the caller is not the owner ❌", async function(){
       // we try to call withdraw function 
       await expect(punkContract.connect(addr1).withdraw()).to.be.revertedWith("caller is not the owner");      
@@ -242,5 +242,163 @@ describe("Punk", function(){
     })
   })
 
-  //
+  // good
+  describe("balanceOf", function(){
+    it("(balanceOf) it should return 0 ✅", async function(){
+      // we try to call balanceOf function 
+      const expectedValue = 0;
+
+      expect( await punkContract.balanceOf(addr1.address)).to.equal(expectedValue);      
+    })
+
+    it("(balanceOf) it should return 1 ✅", async function(){
+      
+      // for minting we must be turn isPublicMintEnabled variable to true
+      await punkContract.connect(owner).setisPublicMintEnabled(true);
+      const quantity = await punkContract.minQuantity();// 1
+      // we have to pay 0.005 for mining
+      const amount = {
+        value: ethers.utils.parseEther((0.005 * quantity).toString()), // ether in this case MUST be a string
+      } 
+      await punkContract.mintNFT(addr1.address, quantity, amount);
+      const expectedValue = 1;
+
+      // we will check if the total supply was increased
+      expect(await punkContract.getTotalSupply()).to.equal(expectedValue);
+
+      // we will check if the blanceOf of this address was increased
+      expect( await punkContract.balanceOf(addr1.address)).to.equal(expectedValue);
+    })
+  })
+
+  // good
+  describe("transferFrom", function(){
+    it("(transferFrom) it should be reverted because the NFT has not yet been created ❌", async function(){
+      // we try to transfer an NFT 
+
+      const tokenId = 1
+      await expect(punkContract.transferFrom(addr1.address, addr2.address, tokenId)).to.be.revertedWith("invalid token ID");
+
+    })
+
+    it("(transferFrom) it should be reverted because the sender is not the owner of the NFT ❌", async function(){
+      // we try to transfer an NFT
+      // for minting we must be turn isPublicMintEnabled variable to true
+      await punkContract.connect(owner).setisPublicMintEnabled(true);
+      const quantity = await punkContract.minQuantity();// 1
+      // we have to pay 0.005 for mining
+      const amount = {
+        value: ethers.utils.parseEther((0.005 * quantity).toString()), // ether in this case MUST be a string
+      } 
+      await punkContract.mintNFT(owner.address, quantity, amount);
+      const expectedValue = 1;
+
+      // we will check if the total supply was increased
+      expect(await punkContract.getTotalSupply()).to.equal(expectedValue);
+
+      const tokenId = 1
+      await expect(punkContract.transferFrom(addr1.address, addr2.address, tokenId)).to.be.revertedWith("transfer from incorrect owner");
+    })
+
+    it("(transferFrom) it should be passed because the sender is the owner of the NFT ✅", async function(){
+      // we try to transfer an NFT
+      // for minting we must be turn isPublicMintEnabled variable to true
+      await punkContract.connect(owner).setisPublicMintEnabled(true);
+      const quantity = await punkContract.minQuantity();// 1
+      // we have to pay 0.005 for mining
+      const amount = {
+        value: ethers.utils.parseEther((0.005 * quantity).toString()), // ether in this case MUST be a string
+      } 
+      await punkContract.mintNFT(owner.address, quantity, amount);
+      const expectedValue = 1;
+
+      // we will check if the total supply was increased
+      expect(await punkContract.getTotalSupply()).to.equal(expectedValue);
+
+      const balanceOfBeforeTransfer = await punkContract.balanceOf(addr1.address) //0
+
+      //we transfer NFT from the owner to the new owner(addr1)
+      const tokenId = 1
+      await punkContract.transferFrom(owner.address, addr1.address, tokenId);
+
+      const balanceOfAfterTransfer = await punkContract.balanceOf(addr1.address) // 1
+
+      expect(balanceOfAfterTransfer > balanceOfBeforeTransfer).to.equal(true);
+
+    })
+  })
+
+  // approve
+  describe("setApprovalForAll & approve", function(){
+    it("(setApprovalForAll) it should be reverted because isEnableToSell is false ❌", async function(){
+      // we try to call setApprovalForAll 
+      await expect(punkContract.connect(addr1).setApprovalForAll(addr2.address, true)).to.be.revertedWith("isEnableToSell");
+    })
+
+    it("(setApprovalForAll) it should be passed because isEnableToSell is true ✅", async function(){
+      // we try to call setApprovalForAll 
+      await punkContract.connect(owner).setisEnableToSell(true)
+      await punkContract.connect(addr1).setApprovalForAll(addr2.address, true)
+    })
+
+    it("(approve) it should be reverted because isEnableToSell is false ❌", async function(){
+      // we try to call approve function 
+      const tokenId = 1
+      await expect(punkContract.connect(addr1).approve(addr2.address, tokenId)).to.be.revertedWith("isEnableToSell");
+    })
+
+    it("(approve) it should be reverted because the NFT has not yet been created ❌", async function(){
+      // we try to call approve function
+      const tokenId = 1
+      await punkContract.connect(owner).setisEnableToSell(true)
+      await expect(punkContract.connect(addr1).approve(addr2.address, tokenId)).to.be.revertedWith("invalid token ID");
+    })
+
+    it.only("(approve) it should be reverted because the sender is not the owner of the NFT ❌", async function(){
+      // we try to call approve function
+      
+      await punkContract.connect(owner).setisEnableToSell(true);
+      // for minting we must be turn isPublicMintEnabled variable to true
+      await punkContract.connect(owner).setisPublicMintEnabled(true);
+      const quantity = await punkContract.minQuantity();// 1
+      // we have to pay 0.005 for mining
+      const amount = {
+        value: ethers.utils.parseEther((0.005 * quantity).toString()), // ether in this case MUST be a string
+      } 
+      await punkContract.mintNFT(addr1.address, quantity, amount);
+      const expectedValue = 1;
+
+      // we will check if the total supply was increased
+      expect(await punkContract.getTotalSupply()).to.equal(expectedValue);
+
+      const tokenId = 1
+      
+      await expect(punkContract.connect(addr3).approve(addr2.address, tokenId)).to.be.revertedWith("transfer from incorrect owner");
+
+    })
+
+    it("(approve) it should be passed because the NFT was created & the isEnableToSell is true and the sender is the owner of the NFT✅", async function(){
+      // we try to call approve function
+      
+      await punkContract.connect(owner).setisEnableToSell(true);
+      // for minting we must be turn isPublicMintEnabled variable to true
+      await punkContract.connect(owner).setisPublicMintEnabled(true);
+      const quantity = await punkContract.minQuantity();// 1
+      // we have to pay 0.005 for mining
+      const amount = {
+        value: ethers.utils.parseEther((0.005 * quantity).toString()), // ether in this case MUST be a string
+      } 
+      await punkContract.mintNFT(addr1.address, quantity, amount);
+      const expectedValue = 1;
+
+      // we will check if the total supply was increased
+      expect(await punkContract.getTotalSupply()).to.equal(expectedValue);
+
+      const tokenId = 1
+      await punkContract.connect(addr1).approve(addr2.address, tokenId)
+      //await expect(punkContract.connect(addr1).approve(addr2.address, tokenId)).to.be.revertedWith("invalid token ID");
+    })
+
+  })
+
 })

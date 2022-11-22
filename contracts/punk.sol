@@ -96,6 +96,7 @@ contract Punk is ERC721URIStorage, Ownable {
         _setApprovalForAll(msg.sender, _operator, _approved);
     }
 
+    // we cant test this function with JS 
     function _setApprovalForAll(address to, address _operator, bool _approved) internal override {
         require(isEnableToSell, "isEnableToSell");
         super._setApprovalForAll(to, _operator, _approved);
@@ -103,22 +104,19 @@ contract Punk is ERC721URIStorage, Ownable {
 
     function approve(address to, uint256 tokenId) public virtual override {
         require(isEnableToSell, "isEnableToSell");
+        require(ownerOf(tokenId) == msg.sender, "transfer from incorrect owner");
         _approve(to, tokenId);
     }
+
     // override ERC721URIStorage
     function _burn(uint256 tokenId) internal override {
         super._burn(tokenId);
     }
-    function tokenURI(uint256 tokenId) public view override onlyOwner returns (string memory)
+    function tokenURI(uint256 tokenId) public view override returns (string memory)
     {
         return super.tokenURI(tokenId);
     }
 }
-
-
-
-
-
 
 // override ERC721Enumerable
 // function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721, ERC721Enumerable){
