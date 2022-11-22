@@ -28,7 +28,8 @@ contract Punk is ERC721URIStorage, Ownable {
         isEnableToSell = false;
         setLink(_link);
         totalSupply = 0;
-        // https://gateway.pinata.cloud/ipfs/QmZWRRtY62ZX5SJDyzTEdpv2evGVB9JBgrBAS63SSj51xa/
+        // https://gateway.pinata.cloud/ipfs/QmZWRRtY62ZX5SJDyzTEdpv2evGVB9JBgrBAS63SSj51xa/ punk
+        // https://gateway.pinata.cloud/ipfs/QmaXdVYjGRscsa87CBk16CsRpZqpkBWH2BeSsKG5xsiAru/ wolf
     }
 
     function setLink(string memory _link) public onlyOwner {
